@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>سوقك — نسخة محلية مع تفعيل يدوي</title>
+<style>
+:root{
+  --accent:#ff6b00;
+  --dark:#062026;
+  --muted:#6b7280;
+  --bg:#f6f7f8;
+  --card:#fff;
+  --border:#e6e7eb;
+  --radius:12px;
+  font-family: "Segoe UI", Tahoma, "Noto Naskh Arabic", sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--dark);-webkit-font-smoothing:antialiased}
+.container{max-width:1100px;margin:0 auto;padding:18px}
+a{color:inherit;text-decoration:none}
+
+/* header */
+.header{background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo-mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#ff9b3a);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800}
+.title{font-weight:800;font-size:18px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-weight:700}
+.btn.primary{background:var(--accent);color:#fff;border:none}
+.btn.danger{background:#ff4d4f;color:#fff;border:none}
+.small{padding:6px 8px;font-size:13px}
+
+/* layout */
+.main-grid{display:grid;grid-template-columns:260px 1fr;gap:18px;margin-top:18px;padding-bottom:40px}
+.sidebar{background:var(--card);padding:14px;border-radius:12px;border:1px solid var(--border)}
+.sidebar h3{margin:0 0 12px}
+.pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f4f5f6;border:1px solid var(--border);font-weight:800}
+
+/* search */
+.search{display:flex;gap:8px;align-items:center}
+.search input{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border)}
+
+/* grid cards */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 10px 30px rgba(11,15,20,0.04);display:flex;flex-direction:column;transition:transform .14s}
+.card:hover{transform:translateY(-6px)}
+.media{height:180px;background:#fafafa;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.media img{width:100%;height:100%;object-fit:cover}
+.card-body{padding:12px;display:flex;flex-direction:column;gap:8px}
+.title{font-weight:900}
+.desc{color:var(--muted);font-size:13px;margin:0}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:auto;font-weight:800}
+.tag{background:#fff;padding:6px 8px;border-radius:8px;border:1px solid var(--border);font-weight:700;font-size:12px}
+.sold-badge{background:#111;color:#fff;padding:6px 8px;border-radius:8px;font-weight:900;font-size:12px}
+
+/* detail */
+.detail{display:none;background:var(--card);padding:16px;border-radius:12px;border:1px solid var(--border)}
+.detail.active{display:block}
+.gallery{display:flex;gap:12px}
+.gallery .big{flex:1;border-radius:10px;overflow:hidden;background:#fff;border:1px solid var(--border)}
+.gallery img{width:100%;height:420px;object-fit:cover}
+.info{width:360px}
+
+/* forms */
+.field{margin-bottom:10px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.field input, .field select, .field textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#fff}
+.preview{margin-top:8px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+
+/* welcome overlay */
+#welcome{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(6,32,38,0.92), rgba(6,32,38,0.88));z-index:999}
+#welcome .card{background:#fff;padding:28px;border-radius:16px;max-width:760px;width:92%;text-align:center;box-shadow:0 14px 50px rgba(4,10,12,0.45)}
+#welcome h1{margin:0 0 8px;font-size:26px;color:var(--dark)}
+#welcome p{color:var(--muted);margin:0 0 18px}
+
+/* admin modal */
+.admin-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:9999}
+.admin-card{background:#fff;padding:18px;border-radius:12px;max-width:900px;width:94%;max-height:85vh;overflow:auto}
+
+/* small helpers */
+.center{text-align:center}
+.hint{font-size:13px;color:var(--muted)}
+.subs{display:flex;gap:10px;margin-top:12px}
+.sub-card{flex:1;padding:12px;border-radius:10px;border:1px dashed var(--border);text-align:center}
+.sub-price{font-weight:900;font-size:18px;color:var(--accent);margin-top:8px}
+.profile-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+
+/* footer */
+footer{margin-top:28px;padding:18px;text-align:center;color:var(--muted);font-size:14px}
+
+/* responsive */
+@media (max-width:1000px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .main-grid{grid-template-columns:1fr}
+  .gallery img{height:300px}
+  .info{width:auto}
+}
+@media (max-width:600px){
+  .cards{grid-template-columns:1fr}
+  .gallery img{height:220px}
+  .media{height:220px}
+}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- Welcome -->
+<div id="welcome" role="dialog" aria-modal="true">
+  <div class="card">
+    <h1>أهلاً بك في سوقك — نسخة تجريبية</h1>
+    <p>أضف منتجاتك، اطلب تفعيل حسابك للدفع، وتواصل مع المشترين عبر: <strong>01019339230</strong></p>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:18px">
+      <button class="btn primary" id="startBtn">ابدأ الآن</button>
+      <button class="btn" id="skipBtn">اعرض المتجر</button>
+    </div>
+    <p class="hint" style="margin-top:12px">البيانات محفوظة محلياً. التفعيل يتم يدوياً عبر لوحة المدير.</p>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-inner container">
+    <div class="brand">
+      <div class="logo-mark">س</div>
+      <div>
+        <div class="title">سوقك — إدارة الإعلانات</div>
+        <div class="hint">Local demo — تفعيل يدوي</div>
+      </div>
+    </div>
+
+    <div style="flex:1;max-width:560px;margin-inline:8px">
+      <div class="search">
+        <input id="globalSearch" placeholder="ابحث (مثال: iPhone, PS, عربة...)" />
+        <button class="btn small" id="searchBtn">بحث</button>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div id="currentUserDisplay" class="hint">غير مسجل</div>
+      <button class="btn" id="profileToggle">الملف</button>
+      <button class="btn primary" id="createBtn">أضف منتج</button>
+      <button class="btn" id="adminBtn" title="لوحة المدير">Admin</button>
+    </div>
+  </div>
+</header>
+
+<main class="container" style="padding-top:18px">
+  <div class="main-grid">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <h3>القائمة</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+        <button class="btn" id="showAllBtn">عرض جميع المنتجات</button>
+        <button class="btn" id="showMineBtn">منتجاتي</button>
+        <button class="btn" id="openLoginBtn">تسجيل/دخول</button>
+        <button class="btn" id="openSettingsBtn">الإعدادات</button>
+        <button class="btn small" id="clearStorageBtn">حذف كل البيانات</button>
+      </div>
+
+      <hr style="margin:14px 0;border:none;border-top:1px solid var(--border)">
+      <h3>الفئات السريعة</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+        <button class="pill catBtn" data-cat="موبايل">موبايلات</button>
+        <button class="pill catBtn" data-cat="iPad">iPad</button>
+        <button class="pill catBtn" data-cat="عربية">عربيات</button>
+        <button class="pill catBtn" data-cat="Xbox">Xbox</button>
+        <button class="pill catBtn" data-cat="PlayStation">PlayStation</button>
+        <button class="pill catBtn" data-cat="ألعاب">ألعاب</button>
+        <button class="pill catBtn" data-cat="أكل">أكل</button>
+        <button class="pill catBtn" data-cat="أخرى">أخرى</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <section>
+      <div id="formsArea"></div>
+
+      <div id="gridView">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h2>المنتجات</h2>
+          <div id="stats" class="hint"></div>
+        </div>
+        <div id="cards" class="cards" aria-live="polite"></div>
+      </div>
+
+      <div id="detailView" class="detail" aria-hidden="true">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn" id="backBtn">« العودة</button>
+            <div id="detailCategory" class="pill"></div>
+            <div id="soldBadge" class="sold-badge hidden">مباع</div>
+          </div>
+          <div id="detailMeta" class="hint"></div>
+        </div>
+
+        <div class="gallery">
+          <div class="big"><img id="detailImg" src="" alt=""></div>
+          <div class="info">
+            <h2 id="detailTitle"></h2>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+              <div style="font-weight:900;color:var(--accent);font-size:20px" id="detailPrice"></div>
+              <div class="hint" id="detailPromo">-</div>
+            </div>
+
+            <div style="margin-top:12px">
+              <div class="hint">البائع</div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                <div id="detailSeller" style="font-weight:800">—</div>
+                <button class="btn small" id="revealPhoneBtn">اظهر رقم البائع</button>
+                <div id="detailPhone" class="hint"></div>
+              </div>
+            </div>
+
+            <section style="margin-top:14px">
+              <h4>الوصف</h4>
+              <p id="detailDesc" class="hint"></p>
+            </section>
+
+            <div style="margin-top:14px;display:flex;gap:8px">
+              <button class="btn primary" id="contactBtn">اتصل بالبائع</button>
+              <button class="btn danger" id="markSoldBtn">تم البيع</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="profileView" class="hidden" style="background:var(--card);padding:14px;border-radius:12px;border:1px solid var(--border);margin-top:12px">
+        <h3>الملف الشخصي</h3>
+        <div class="profile-row"><div>الاسم</div><div id="profileName">—</div></div>
+        <div class="profile-row"><div>رقم الموبايل</div><div id="profilePhone">—</div></div>
+        <div class="profile-row"><div>عدد المبيعات</div><div id="profileSales">0</div></div>
+        <div class="profile-row"><div>حالة الحساب</div><div id="profileActive" class="hint">—</div></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn" id="editProfileBtn">تعديل</button>
+          <button class="btn" id="logoutBtn">تسجيل خروج</button>
+          <button class="btn small" id="requestActivationBtn">طلب تفعيل</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    © النسخة المحلية — البيانات محفوظة في جهازك فقط.
+  </footer>
+</main>
+
+<!-- Admin modal -->
+<div id="adminModal" class="admin-modal" role="dialog" aria-hidden="true">
+  <div class="admin-card">
+    <h3>لوحة المدير — طلبات التفعيل</h3>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input id="adminPin" placeholder="أدخل PIN المدير (افتراضي 1234)" style="padding:8px;border-radius:8px;border:1px solid var(--border);flex:1">
+      <button class="btn" id="adminUnlock">فتح</button>
+      <button class="btn" id="adminClose">إغلاق</button>
+    </div>
+    <div id="adminContent" class="hidden">
+      <div style="margin-bottom:12px">
+        <button class="btn small" id="approveAllBtn">الموافقة على الكل</button>
+        <button class="btn small" id="clearRequestsBtn">مسح جميع الطلبات</button>
+      </div>
+      <div id="requestsList"></div>
+      <hr style="margin:12px 0">
+      <h4>قائمة المستخدمين</h4>
+      <div id="usersList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== storage keys & helpers ===== */
+const LS_PRODUCTS = 'myshop_products_v3'
+const LS_USERS = 'myshop_users_v3'
+const LS_CURRENT = 'myshop_current_v3'
+const LS_ACTIVATION = 'myshop_activation_requests_v1' // list of {phone,name,date}
+
+function uid(){ return 'p_' + Date.now() + '_' + Math.floor(Math.random()*9000) }
+function el(s){ return document.querySelector(s) }
+function els(s){ return Array.from(document.querySelectorAll(s)) }
+
+function readProducts(){ try{ return JSON.parse(localStorage.getItem(LS_PRODUCTS) || '[]') }catch(e){ return [] } }
+function writeProducts(a){ localStorage.setItem(LS_PRODUCTS, JSON.stringify(a)) }
+function readUsers(){ try{ return JSON.parse(localStorage.getItem(LS_USERS) || '[]') }catch(e){ return [] } }
+function writeUsers(a){ localStorage.setItem(LS_USERS, JSON.stringify(a)) }
+function readActivationRequests(){ try{ return JSON.parse(localStorage.getItem(LS_ACTIVATION) || '[]') }catch(e){ return [] } }
+function writeActivationRequests(a){ localStorage.setItem(LS_ACTIVATION, JSON.stringify(a)) }
+function getCurrent(){ return localStorage.getItem(LS_CURRENT) || null }
+function setCurrent(phone){ if(phone) localStorage.setItem(LS_CURRENT, phone); else localStorage.removeItem(LS_CURRENT) }
+
+/* UI refs */
+const cardsEl = el('#cards')
+const statsEl = el('#stats')
+const currentUserDisplay = el('#currentUserDisplay')
+
+/* initial */
+document.addEventListener('DOMContentLoaded', ()=>{
+  seedData()
+  bindUI()
+  renderGrid()
+  refreshCurrent()
+})
+
+/* seed */
+function seedData(){
+  if(readUsers().length===0){
+    writeUsers([{phone:'01011223344',name:'أحمد',sales:0,active:true}]) // admin example user active
+  }
+  if(readProducts().length===0){
+    writeProducts([
+      {id:uid(),title:'iPhone 12',category:'موبايل',model:'iPhone 12',price:5500,desc:'جهاز مستخدم 6 أشهر، بدون خدوش',image:'',phone:'01011223344',sellerName:'أحمد',isSold:false,createdAt:Date.now()-200000,promoted:'week'},
+      {id:uid(),title:'دراجة جبلية',category:'ألعاب',model:'Mountain Bike',price:2200,desc:'مناسبة للطرق الوعرة',image:'',phone:'01099887766',sellerName:'محمود',isSold:false,createdAt:Date.now()-500000,promoted:'none'}
+    ])
+  }
+}
+
+/* bind UI */
+function bindUI(){
+  el('#startBtn').onclick = ()=> el('#welcome').style.display='none'
+  el('#skipBtn').onclick = ()=> el('#welcome').style.display='none'
+  el('#createBtn').onclick = ()=> openCreate()
+  el('#openLoginBtn').onclick = ()=> openLogin()
+  el('#openSettingsBtn').onclick = ()=> openSettings()
+  el('#showAllBtn').onclick = ()=> { renderGrid(); clearForms() }
+  el('#showMineBtn').onclick = ()=> { renderGrid({mine:true}); clearForms() }
+  el('#clearStorageBtn').onclick = ()=> { if(confirm('سيتم حذف جميع البيانات محلياً. متابعة؟')){ localStorage.removeItem(LS_PRODUCTS); localStorage.removeItem(LS_USERS); localStorage.removeItem(LS_CURRENT); localStorage.removeItem(LS_ACTIVATION); location.reload() } }
+  el('#profileToggle').onclick = ()=> el('#profileView').classList.toggle('hidden')
+  el('#searchBtn').onclick = ()=> { renderGrid({q: el('#globalSearch').value.trim()}); clearForms() }
+  els('.catBtn').forEach(b=> b.addEventListener('click', ()=> { renderGrid({cat:b.dataset.cat}); clearForms() }) )
+  el('#backBtn').onclick = ()=> { el('#detailView').classList.remove('active'); el('#gridView').style.display='block'; el('#detailView').setAttribute('aria-hidden','true') }
+  el('#editProfileBtn').onclick = editProfile
+  el('#logoutBtn').onclick = ()=> { setCurrent(null); refreshCurrent(); alert('تم تسجيل الخروج'); clearForms(); renderGrid() }
+  el('#requestActivationBtn').onclick = ()=> { requestActivationForCurrent() }
+  el('#adminBtn').onclick = ()=> { openAdminModal() }
+
+  // admin modal controls
+  el('#adminClose').onclick = ()=> { el('#adminModal').style.display='none'; el('#adminContent').classList.add('hidden') }
+  el('#adminUnlock').onclick = adminUnlock
+}
+
+/* current user */
+function refreshCurrent(){
+  const phone = getCurrent()
+  if(!phone){ currentUserDisplay.textContent = 'غير مسجل'; el('#profileView').classList.add('hidden'); return }
+  const users = readUsers(); const me = users.find(u=>u.phone===phone)
+  if(me){
+    currentUserDisplay.textContent = `${me.name} • ${me.phone}`
+    el('#profileView').classList.remove('hidden')
+    el('#profileName').textContent = me.name
+    el('#profilePhone').textContent = me.phone
+    el('#profileSales').textContent = me.sales || 0
+    el('#profileActive').textContent = me.active ? 'مُفعل' : 'غير مفعل'
+    if(!me.active){
+      // show hint banner in forms area
+      showActivationBanner()
+    } else {
+      clearForms()
+    }
+  } else {
+    currentUserDisplay.textContent = phone; el('#profileView').classList.add('hidden')
+  }
+}
+
+/* forms helpers */
+function clearForms(){ el('#formsArea').innerHTML = '' }
+
+/* Activation request */
+function requestActivation(phone,name){
+  const requests = readActivationRequests()
+  requests.unshift({phone,name,date:Date.now()})
+  writeActivationRequests(requests)
+  alert('تم إرسال طلب التفعيل محلياً. سيتم الموافقة يدوياً عبر لوحة المدير.')
+  // refresh admin UI optionally
+}
+
+function requestActivationForCurrent(){
+  const cur = getCurrent()
+  if(!cur){ alert('سجّل الدخول أولاً'); openLogin(); return }
+  const users = readUsers(); const me = users.find(u=>u.phone===cur)
+  requestActivation(cur, me ? me.name : 'مستخدم')
+  refreshCurrent()
+}
+
+/* Login */
+function openLogin(){
+  clearForms()
+  const div = document.createElement('div'); div.className='sidebar'
+  div.innerHTML = `
+    <h3>تسجيل / دخول</h3>
+    <div class="field"><label>الاسم</label><input id="login_name" placeholder="مثال: محمد"></div>
+    <div class="field"><label>رقم الموبايل</label><input id="login_phone" placeholder="01XXXXXXXXX"></div>
+    <div style="display:flex;gap:8px"><button class="btn primary" id="doLogin">دخول</button><button class="btn" id="cancelLogin">إلغاء</button></div>
+    <div class="hint" style="margin-top:8px">التسجيل محلياً. الحساب سيطلب تفعيل قبل النشر.</div>
+  `
+  el('#formsArea').appendChild(div)
+  el('#cancelLogin').onclick = clearForms
+  el('#doLogin').onclick = ()=> {
+    const name = el('#login_name').value.trim() || 'مستخدم'
+    const phone = el('#login_phone').value.trim()
+    if(!phone){ alert('ادخل رقم الموبايل'); return }
+    const users = readUsers()
+    let u = users.find(x=>x.phone===phone)
+    if(u){
+      u.name = name // keep existing active flag
+    } else {
+      // new user created as NOT active
+      u = {phone,name,sales:0,active:false}
+      users.push(u)
+      // create activation request immediately (optional)
+      // requestActivation(phone,name)
+    }
+    writeUsers(users)
+    setCurrent(phone)
+    refreshCurrent()
+    clearForms()
+    alert('تم التسجيل محلياً. حسابك قد يكون غير مفعل — اطلب التفعيل إذا رغبت.')
+    renderGrid()
+  }
+}
+
+/* Edit profile */
+function editProfile(){
+  const phone = getCurrent()
+  if(!phone){ return openLogin() }
+  clearForms()
+  const users = readUsers(); const me = users.find(u=>u.phone===phone)
+  const div = document.createElement('div'); div.className='sidebar'
+  div.innerHTML = `
+    <h3>تعديل الملف</h3>
+    <div class="field"><label>الاسم</label><input id="edit_name" value="${me.name}"></div>
+    <div class="field"><label>رقم الموبايل</label><input id="edit_phone" value="${me.phone}"></div>
+    <div style="display:flex;gap:8px"><button class="btn primary" id="saveProfile">حفظ</button><button class="btn" id="cancelEdit">إلغاء</button></div>
+  `
+  el('#formsArea').appendChild(div)
+  el('#cancelEdit').onclick = clearForms
+  el('#saveProfile').onclick = ()=> {
+    const nm = el('#edit_name').value.trim() || 'مستخدم'
+    const ph = el('#edit_phone').value.trim()
+    if(!ph){ alert('ادخل رقم'); return }
+    const users = readUsers(); const idx = users.findIndex(u=>u.phone===me.phone)
+    if(idx>=0){
+      users[idx].name = nm; users[idx].phone = ph; // keep active flag
+      writeUsers(users)
+      // update products of this seller
+      const prods = readProducts().map(it=> it.phone===me.phone ? ({...it, phone:ph, sellerName:nm}) : it)
+      writeProducts(prods)
+      setCurrent(ph); refreshCurrent(); renderGrid(); clearForms(); alert('تم الحفظ')
+    }
+  }
+}
+
+/* Create product */
+function openCreate(){
+  const cur = getCurrent()
+  if(!cur){ if(confirm('يجب تسجيل الدخول أولاً. اذهب للتسجيل الآن؟')) openLogin(); return }
+  // check active
+  const users = readUsers(); const me = users.find(u=>u.phone===cur)
+  if(!me || !me.active){
+    if(confirm('حسابك غير مفعل — لا يمكنك نشر منتجات. هل تريد طلب تفعيل الآن؟')){
+      requestActivationForCurrent()
+    }
+    return
+  }
+  clearForms()
+  const div = document.createElement('div'); div.className='sidebar'
+  div.innerHTML = `
+    <h3>أضف منتجاً</h3>
+    <div class="field"><label>اسم المنتج</label><input id="p_title"></div>
+    <div class="field"><label>الفئة</label>
+      <select id="p_cat"><option>موبايل</option><option>iPad</option><option>عربية</option><option>Xbox</option><option>PlayStation</option><option>ألعاب</option><option>أكل</option><option>أخرى</option></select>
+    </div>
+    <div class="field"><label>النوع/الموديل</label><input id="p_model"></div>
+    <div class="field"><label>السعر (ج.م)</label><input id="p_price" type="number"></div>
+    <div class="field"><label>رقم البائع</label><input id="p_phone" value="${cur}"></div>
+    <div class="field"><label>اسم البائع</label><input id="p_seller"></div>
+    <div class="field"><label>الوصف</label><textarea id="p_desc" rows="3"></textarea></div>
+    <div class="field"><label>صورة</label><input id="p_image" type="file" accept="image/*"><div id="p_preview" class="preview"></div></div>
+    <div style="display:flex;gap:8px"><button class="btn primary" id="publishBtn">نشر</button><button class="btn" id="cancelCreate">إلغاء</button></div>
+    <div class="hint" style="margin-top:8px">بعد النشر اختر ترويج (أسبوع/شهر) — للتفعيل الفعلي تواصل عبر 01019339230.</div>
+  `
+  el('#formsArea').appendChild(div)
+  el('#cancelCreate').onclick = clearForms
+  el('#p_image').addEventListener('change', function(){
+    const f = this.files[0]; if(!f) return
+    const r = new FileReader(); r.onload = e=> { el('#p_preview').innerHTML = `<img src="${e.target.result}" style="width:100%;height:140px;object-fit:cover;border-radius:8px">`; el('#p_preview').dataset.img = e.target.result }
+    r.readAsDataURL(f)
+  })
+  el('#publishBtn').onclick = ()=>{
+    const title = el('#p_title').value.trim(); const cat = el('#p_cat').value; const model = el('#p_model').value.trim()
+    const price = Number(el('#p_price').value) || 0; const phone = el('#p_phone').value.trim(); const seller = el('#p_seller').value.trim() || 'بائع'
+    const desc = el('#p_desc').value.trim(); const img = el('#p_preview').dataset.img || ''
+    if(!title || !phone || price<=0){ alert('ادخل العنوان والسعر ورقم البائع'); return }
+    const product = { id: uid(), title, category:cat, model, price, desc, image:img, phone, sellerName:seller, isSold:false, createdAt:Date.now(), promoted:'none' }
+    const arr = readProducts(); arr.unshift(product); writeProducts(arr)
+    clearForms(); showPromo(product.id); renderGrid(); refreshCurrent()
+  }
+}
+
+/* show promo */
+function showPromo(pid){
+  clearForms()
+  const div = document.createElement('div'); div.className='sidebar'
+  div.innerHTML = `
+    <h3>اختر ترويج</h3>
+    <div class="hint">ترويج محلي (محاكاة). للتفعيل الفعلي تواصل على 01019339230</div>
+    <div style="margin-top:12px">
+      <div class="sub-card"><div>أسبوعي</div><div class="sub-price">100 ج.م</div><div style="margin-top:8px"><button class="btn primary" id="weekBtn">اختر</button></div></div>
+      <div style="height:8px"></div>
+      <div class="sub-card"><div>شهري</div><div class="sub-price">400 ج.م</div><div style="margin-top:8px"><button class="btn primary" id="monthBtn">اختر</button></div></div>
+      <div style="margin-top:12px"><button class="btn" id="skipPromo">تخطي</button></div>
+    </div>
+  `
+  el('#formsArea').appendChild(div)
+  el('#weekBtn').onclick = ()=> { applyPromo(pid,'week'); clearForms(); alert('تم تفعيل ترويج أسبوعي (محلي). تواصل على 01019339230 لإتمام الدفع.') }
+  el('#monthBtn').onclick = ()=> { applyPromo(pid,'month'); clearForms(); alert('تم تفعيل ترويج شهري (محلي). تواصل على 01019339230 لإتمام الدفع.') }
+  el('#skipPromo').onclick = ()=> { applyPromo(pid,'none'); clearForms(); alert('تم نشر الإعلان بدون ترويج') }
+}
+function applyPromo(pid,type){ const arr = readProducts(); const i = arr.findIndex(p=>p.id===pid); if(i>=0){ arr[i].promoted = type; writeProducts(arr); renderGrid(); updateStats() } }
+
+/* render grid */
+function renderGrid(opts={}){
+  const q = (opts.q||'').toLowerCase(); const cat = opts.cat || null; const mine = opts.mine || false
+  let list = readProducts().slice(); const cur = getCurrent()
+  if(q) list = list.filter(p=> (p.title + ' ' + p.model + ' ' + p.desc).toLowerCase().includes(q))
+  if(cat) list = list.filter(p=> p.category===cat)
+  if(mine){ if(!cur){ alert('سجّل الدخول أولاً'); openLogin(); return } list = list.filter(p=> p.phone===cur) }
+  list.sort((a,b)=> { const score = x=> x.promoted==='month'?3: x.promoted==='week'?2:1; const s=score(b)-score(a); if(s!==0) return s; return b.createdAt - a.createdAt })
+  cardsEl.innerHTML = ''
+  if(list.length===0){ cardsEl.innerHTML = '<div class="hint">لا توجد منتجات</div>'; updateStats(); return }
+  list.forEach(p=>{
+    const card = document.createElement('article'); card.className='card'
+    const img = p.image || placeholder()
+    card.innerHTML = `<a class="media" href="#" data-id="${p.id}"><img src="${img}" alt="${esc(p.title)}"></a>
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <a class="title" href="#" data-id="${p.id}">${esc(p.title)}</a>
+          ${p.isSold? '<span class="sold-badge">مباع</span>' : (p.promoted!=='none'? `<span class="tag">${p.promoted==='month'?'مميز(شهري)':'مميز(أسبوعي)'}</span>` : '')}
+        </div>
+        <p class="desc">${esc(p.model||'')}</p>
+        <div class="meta"><div class="price">${fmt(p.price)} ج.م</div><div class="hint">${esc(p.sellerName||'')}</div></div>
+      </div>`
+    cardsEl.appendChild(card)
+    card.querySelectorAll('[data-id]').forEach(elm=> elm.addEventListener('click', e=> { e.preventDefault(); openDetail(p.id) }) )
+  })
+  updateStats()
+}
+
+/* open detail */
+function openDetail(id){
+  const arr = readProducts(); const p = arr.find(x=>x.id===id); if(!p){ alert('المنتج غير موجود'); return }
+  el('#gridView').style.display='none'; el('#detailView').classList.add('active'); el('#detailView').setAttribute('aria-hidden','false')
+  el('#detailImg').src = p.image || placeholder()
+  el('#detailTitle').textContent = p.title
+  el('#detailPrice').textContent = fmt(p.price) + ' ج.م'
+  el('#detailCategory').textContent = p.category
+  el('#detailSeller').textContent = p.sellerName
+  el('#detailDesc').textContent = p.desc || '-'
+  el('#detailMeta').textContent = `معرّف: ${p.id} • نُشر: ${new Date(p.createdAt).toLocaleString()}`
+  el('#detailPhone').textContent = ''
+  el('#soldBadge').classList.toggle('hidden', !p.isSold)
+  el('#detailPromo').textContent = p.promoted==='month' ? 'مروج شهرياً' : p.promoted==='week' ? 'مروج أسبوعياً' : 'إعلان عادي'
+
+  el('#revealPhoneBtn').onclick = ()=> { el('#detailPhone').textContent = p.phone || '—' }
+  el('#contactBtn').onclick = ()=> {
+    const phone = p.phone || ''
+    if(confirm('فتح واتساب مع رقم البائع؟ (سيتم فتح التطبيق إذا كان متوفراً)')){
+      const to = phone.startsWith('+') ? phone : ('+20' + phone.replace(/^0+/,''))
+      window.open(`https://wa.me/${to.replace('+','')}`, '_blank')
+    } else {
+      alert('رقم البائع: ' + (phone || '—') + '\nأو تواصل مع الإدارة: 01019339230')
+    }
+  }
+
+  el('#markSoldBtn').onclick = ()=>{
+    if(p.isSold){ alert('المنتج مباع بالفعل'); return }
+    if(!confirm('تأكيد: وضع حالة المنتج "مباع"؟')) return
+    p.isSold = true
+    writeProducts(arr)
+    // update seller sales
+    const users = readUsers(); const seller = users.find(u=>u.phone===p.phone)
+    if(seller){ seller.sales = (seller.sales||0) + 1; writeUsers(users) }
+    alert('تم وضع المنتج كمباع وتم تحديث عداد المبيعات للبائع')
+    refreshCurrent(); renderGrid()
+    el('#soldBadge').classList.remove('hidden')
+  }
+}
+
+/* settings */
+function openSettings(){
+  clearForms(); const cur = getCurrent(); if(!cur) return openLogin()
+  const users = readUsers(); const me = users.find(u=>u.phone===cur)
+  const div = document.createElement('div'); div.className='sidebar'
+  div.innerHTML = `<h3>الإعدادات</h3>
+    <div class="field"><label>الاسم</label><input id="set_name" value="${me.name}"></div>
+    <div class="field"><label>رقم الهاتف</label><input id="set_phone" value="${me.phone}"></div>
+    <div style="display:flex;gap:8px"><button class="btn primary" id="saveSet">حفظ</button><button class="btn" id="cancelSet">إلغاء</button></div>
+    <hr style="margin:12px 0">
+    <div><button class="btn small" id="viewLocal">عرض المنتجات المحلية</button></div>`
+  el('#formsArea').appendChild(div)
+  el('#cancelSet').onclick = clearForms
+  el('#saveSet').onclick = ()=> {
+    const n = el('#set_name').value.trim()||'مستخدم'; const p = el('#set_phone').value.trim()
+    if(!p){ alert('ادخل رقم'); return }
+    const users = readUsers(); const idx = users.findIndex(u=>u.phone===me.phone)
+    if(idx>=0){ users[idx].name = n; users[idx].phone = p; writeUsers(users)
+      // update products of this seller
+      const prods = readProducts().map(it=> it.phone===me.phone ? ({...it, phone:p, sellerName:n}) : it)
+      writeProducts(prods)
+      setCurrent(p); refreshCurrent(); renderGrid(); clearForms(); alert('تم الحفظ') }
+  }
+  el('#viewLocal').onclick = ()=> {
+    const ps = readProducts(); let txt = 'المنتجات المحلية:\\n\\n'; ps.forEach(x=> txt += `${x.title} — ${fmt(x.price)} ج.م — ${x.category} — ${x.isSold? 'مباع':'متاح'}\\n`)
+    alert(txt)
+  }
+}
+
+/* Admin modal & actions */
+function openAdminModal(){
+  el('#adminModal').style.display = 'flex'
+  el('#adminModal').setAttribute('aria-hidden','false')
+  el('#adminContent').classList.add('hidden')
+  el('#adminPin').value = ''
+  renderAdminRequests()
+}
+function adminUnlock(){
+  const pin = el('#adminPin').value.trim()
+  // default = — you can change this locally
+  if(pin === '112200'){
+    el('#adminContent').classList.remove('hidden')
+    renderAdminRequests()
+    renderAdminUsers()
+  } else {
+    alert('رمز خاطئ')
+  }
+}
+function renderAdminRequests(){
+  const req = readActivationRequests()
+  const out = el('#requestsList'); out.innerHTML = ''
+  if(req.length===0){ out.innerHTML = '<div class="hint">لا توجد طلبات تفعيل</div>'; return }
+  req.forEach((r,idx)=>{
+    const d = new Date(r.date).toLocaleString()
+    const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.alignItems='center'; div.style.padding='8px 0'; div.style.borderBottom='1px solid var(--border)'
+    div.innerHTML = `<div><strong>${r.name}</strong><div class="hint">${r.phone} • ${d}</div></div><div style="display:flex;gap:8px"><button class="btn small" data-idx="${idx}" data-phone="${r.phone}">وافق</button><button class="btn small" data-idx="${idx}" data-phone="${r.phone}" data-remove>رفض</button></div>`
+    out.appendChild(div)
+  })
+  // attach handlers
+  out.querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{
+      const idx = Number(b.dataset.idx)
+      const phone = b.dataset.phone
+      if(b.hasAttribute('data-remove')){
+        const arr = readActivationRequests(); arr.splice(idx,1); writeActivationRequests(arr); renderAdminRequests(); return
+      }
+      // approve
+      const users = readUsers(); const uidx = users.findIndex(u=>u.phone===phone)
+      if(uidx>=0){ users[uidx].active = true; writeUsers(users) }
+      // remove request
+      const arr = readActivationRequests(); arr.splice(idx,1); writeActivationRequests(arr)
+      renderAdminRequests(); renderAdminUsers(); renderGrid(); refreshCurrent()
+      alert('تم تفعيل الحساب محلياً للمستخدم: ' + phone)
+    }
+  })
+  el('#approveAllBtn').onclick = ()=> {
+    const reqs = readActivationRequests(); const users = readUsers()
+    reqs.forEach(r=>{ const u = users.find(x=>x.phone===r.phone); if(u) u.active = true })
+    writeUsers(users); writeActivationRequests([]); renderAdminRequests(); renderAdminUsers(); renderGrid(); refreshCurrent(); alert('تم تفعيل الكل')
+  }
+  el('#clearRequestsBtn').onclick = ()=> { if(confirm('مسح كل الطلبات؟')){ writeActivationRequests([]); renderAdminRequests(); alert('تم المسح') } }
+}
+function renderAdminUsers(){
+  const users = readUsers(); const out = el('#usersList'); out.innerHTML = ''
+  users.forEach(u=>{
+    const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.padding='6px 0'; div.style.borderBottom='1px solid var(--border)'
+    div.innerHTML = `<div><strong>${u.name}</strong><div class="hint">${u.phone} • مبيعات: ${u.sales||0}</div></div><div style="display:flex;gap:8px">${u.active? '<span class="pill">مفعل</span>' : '<span class="hint">غير مفعل</span>'}<button class="btn small" data-phone="${u.phone}" data-toggle>تبديل</button></div>`
+    out.appendChild(div)
+  })
+  out.querySelectorAll('button[data-toggle]').forEach(b=> b.onclick = ()=>{
+    const phone = b.dataset.phone; const users = readUsers(); const idx = users.findIndex(x=>x.phone===phone)
+    if(idx>=0){ users[idx].active = !users[idx].active; writeUsers(users); renderAdminUsers(); renderGrid(); refreshCurrent() }
+  })
+}
+
+/* helpers */
+function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",") }
+function esc(s){ if(!s) return ''; return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
+function placeholder(){ return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect width="100%" height="100%" fill="%23fafafa"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="20">لا توجد صورة</text></svg>`) }
+
+/* update stats */
+function updateStats(){ const arr = readProducts(); const total = arr.length; const promoted = arr.filter(p=>p.promoted!=='none').length; const sold = arr.filter(p=>p.isSold).length; statsEl.textContent = `إجمالي: ${total} • مميز: ${promoted} • مباع: ${sold}` }
+
+/* show activation banner in forms area for non-active user */
+function showActivationBanner(){
+  clearForms()
+  const cur = getCurrent(); if(!cur) return
+  const users = readUsers(); const me = users.find(u=>u.phone===cur)
+  if(!me || me.active) return
+  const div = document.createElement('div'); div.className='sidebar'
+  div.innerHTML = `<h3>الحساب غير مفعل</h3><div class="hint">حسابك غير مفعل بعد. لا يمكنك نشر منتجات حتى تتم الموافقة.</div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn primary" id="doRequest">طلب تفعيل</button><button class="btn" id="contactAdmin">مراسلة الإدارة</button></div>`
+  el('#formsArea').appendChild(div)
+  el('#doRequest').onclick = ()=> { requestActivationForCurrent() }
+  el('#contactAdmin').onclick = ()=> { alert('تواصل عبر واتساب: 01019339230') }
+}
+
+/* final init */
+renderGrid(); updateStats(); refreshCurrent()
+
+/* small keyboard shortcut: Admin modal with Ctrl+Shift+A */
+document.addEventListener('keydown', e=> { if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==='a'){ openAdminModal() } })
+</script>
+</body>
+</html>
